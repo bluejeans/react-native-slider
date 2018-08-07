@@ -179,7 +179,7 @@ export class Slider extends Component {
     minimumTrackTintColor: '#3f3f3f',
     maximumTrackTintColor: '#b3b3b3',
     thumbTintColor: '#343434',
-    thumbTouchSize: {width: 26, height: 26},
+    thumbTouchSize: {width: 24, height: 24},
     debugTouchArea: false,
     animationType: 'timing'
   }
