@@ -326,7 +326,6 @@ export class Slider extends Component {
   }
 
   _handlePanResponderMove = (e: Object, gestureState: Object) => {
-    console.tron.log('Move: ' + JSON.stringify(gestureState))
     if (this.props.disabled) {
       return
     }
