@@ -331,7 +331,7 @@ export class Slider extends Component {
     }
 
     this._setCurrentValue(this._getValue(gestureState)) 
-    this._fireChangeEvent('onValueChange') 
+    this._fireChangeEvent('onValueChange')
   }
 
   _handlePanResponderEnd = (e: Object, gestureState: Object) => {
@@ -358,6 +358,7 @@ export class Slider extends Component {
 
 
     this._setCurrentValue(finalValue) 
+    this._fireChangeEvent('onValueChange')
     this._fireChangeEvent('onSlidingComplete')
   }
 
