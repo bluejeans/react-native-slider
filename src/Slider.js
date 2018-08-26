@@ -128,6 +128,16 @@ export class Slider extends Component {
     onSlidingComplete: PropTypes.func,
 
     /**
+     * Callback called when the user presses on slider track.
+     */
+    onTrackPress: PropTypes.func,
+
+    /**
+     * Callback called when the user presses on steps on slider.
+     */
+    onStepPress: PropTypes.func,
+
+    /**
      * The style applied to the slider container.
      */
     style: View.propTypes.style,
@@ -228,11 +238,13 @@ export class Slider extends Component {
     }
     this._setCurrentValue(finalValue) 
     this._fireChangeEvent('onValueChange')
+    this._fireChangeEvent('onTrackPress')
   }
 
   onPointPress = (value) => {
     this._setCurrentValue(value) 
     this._fireChangeEvent('onValueChange')
+    this._fireChangeEvent('onStepPress')
   }
 
   render() {
