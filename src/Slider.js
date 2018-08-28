@@ -253,7 +253,8 @@ export class Slider extends Component {
   }
 
   handleStepHover = (val) => {
-    this.props.onStepHover(val)
+    const { onStepHover } = this .props
+    onStepHover && onStepHover(val)
   }
 
   renderStep = (currentValue, value, style) => {
@@ -571,7 +572,7 @@ const defaultStyles = StyleSheet.create({
     backgroundColor: 'transparent',
     opacity: 0.5,
   },
-  firstPoint: {
+  firstStep: {
     position: 'absolute',
     backgroundColor: 'white',
     left: '2%',
@@ -581,7 +582,7 @@ const defaultStyles = StyleSheet.create({
     marginTop: 1,
     marginBottom: 1
   },
-  secondPoint: {
+  secondStep: {
     position: 'absolute',
     backgroundColor: '#00A7F4',
     left: '33%',
@@ -591,7 +592,7 @@ const defaultStyles = StyleSheet.create({
     marginTop: 1,
     marginBottom: 1
   },
-  thirdPoint: {
+  thirdStep: {
     position: 'absolute',
     backgroundColor: '#00A7F4',
     left: '65%',
@@ -601,7 +602,7 @@ const defaultStyles = StyleSheet.create({
     marginTop: 1,
     marginBottom: 1
   },
-  fourthPoint: {
+  fourthStep: {
     position: 'absolute',
     backgroundColor: '#00A7F4',
     left: '95%',
