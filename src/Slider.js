@@ -549,10 +549,10 @@ const defaultStyles = StyleSheet.create({
     borderRadius: TRACK_SIZE,
   },
   trackExtendedPressArea: {
-    borderWidth: 3,
+    borderWidth: 8,
     borderColor: 'transparent',
-    height: TRACK_SIZE + 6,
-    borderRadius: (TRACK_SIZE + 6) / 2
+    height: TRACK_SIZE + 16,
+    borderRadius: (TRACK_SIZE + 16) / 2
   },
   thumb: {
     position: 'absolute',
