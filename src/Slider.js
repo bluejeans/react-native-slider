@@ -138,6 +138,11 @@ export class Slider extends Component {
     onStepPress: PropTypes.func,
 
     /**
+     * Callback called when the user hovers on steps on slider.
+     */
+    onStepHover: PropTypes.func,
+
+    /**
      * The style applied to the slider container.
      */
     style: View.propTypes.style,
@@ -241,10 +246,25 @@ export class Slider extends Component {
     this._fireChangeEvent('onTrackPress')
   }
 
-  onPointPress = (value) => {
+  onStepPress = (value) => {
     this._setCurrentValue(value) 
     this._fireChangeEvent('onValueChange')
     this._fireChangeEvent('onStepPress')
+  }
+
+  handleStepHover = (val) => {
+    this.props.onStepHover(val)
+  }
+
+  renderStep = (currentValue, value, style) => {
+    return (
+      <TouchableOpacity onPress={() => this.onStepPress(value)} style={[style, (currentValue > value) && defaultStyles.whiteBackground]} activeOpacity={1}>
+        <View style={{ backgroundColor: 'transparent', height: 4, width: 4 }}
+          onMouseLeave={() => this.handleStepHover(false)}
+          onMouseEnter={() => this.handleStepHover(value)}
+        />
+      </TouchableOpacity>
+    )
   }
 
   render() {
@@ -284,7 +304,7 @@ export class Slider extends Component {
     return (
       <View {...other} style={[mainStyles.container, style]} onLayout={this._measureContainer}>
         <TouchableOpacity
-          style={[{backgroundColor: maximumTrackTintColor}, mainStyles.track, trackStyle]}
+          style={[{backgroundColor: maximumTrackTintColor}, mainStyles.track, trackStyle, defaultStyles.trackExtendedPressArea]}
           activeOpacity={1}
           onLayout={this._measureTrack}
           onPress={this.onTrackPress}
@@ -293,10 +313,10 @@ export class Slider extends Component {
             renderToHardwareTextureAndroid
             style={[mainStyles.track, trackStyle, minimumTrackStyle]}
           />
-          <TouchableOpacity onPress={() => this.onPointPress(0)} style={defaultStyles.firstPoint} activeOpacity={1}/>
-          <TouchableOpacity onPress={() => this.onPointPress(0.334)} style={[defaultStyles.secondPoint, (currentValue > 0.334) && defaultStyles.whiteBackground]} activeOpacity={1}/>
-          <TouchableOpacity onPress={() => this.onPointPress(0.668)} style={[defaultStyles.thirdPoint, (currentValue > 0.668) && defaultStyles.whiteBackground]} activeOpacity={1}/>
-          <TouchableOpacity onPress={() => this.onPointPress(1)} style={defaultStyles.fourthPoint} activeOpacity={1}/>
+          {this.renderStep(currentValue, 0, defaultStyles.firstStep)}
+          {this.renderStep(currentValue, 0.334, defaultStyles.secondStep)}
+          {this.renderStep(currentValue, 0.668, defaultStyles.thirdStep)}
+          {this.renderStep(currentValue, 1, defaultStyles.fourthStep)}
         </TouchableOpacity>
         <Animated.View
           onLayout={this._measureThumb}
@@ -525,7 +545,13 @@ const defaultStyles = StyleSheet.create({
   },
   track: {
     height: TRACK_SIZE,
-    borderRadius: TRACK_SIZE / 2,
+    borderRadius: TRACK_SIZE,
+  },
+  trackExtendedPressArea: {
+    borderWidth: 3,
+    borderColor: 'transparent',
+    height: TRACK_SIZE + 6,
+    borderRadius: (TRACK_SIZE + 6) / 2
   },
   thumb: {
     position: 'absolute',
@@ -548,7 +574,7 @@ const defaultStyles = StyleSheet.create({
   firstPoint: {
     position: 'absolute',
     backgroundColor: 'white',
-    left: '1%',
+    left: '2%',
     height: 4,
     width: 4,
     borderRadius: 4,
