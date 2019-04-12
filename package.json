@@ -34,8 +34,8 @@
     "babel-eslint": "^7.2.1",
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^6.10.3",
-    "react": "16.0.0-alpha.6",
-    "react-native": "0.43.3",
+    "react": "16.6.0-alpha.8af6728",
+    "react-native": "~0.57.0",
     "rimraf": "^2.5.2"
   }
 }
