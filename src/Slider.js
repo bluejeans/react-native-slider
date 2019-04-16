@@ -1,7 +1,5 @@
-import React, {
-  Component,
-  PropTypes
-} from "react" 
+import React, { Component } from "react" 
+import PropTypes from 'prop-types'
 
 import {
   Animated,
@@ -347,7 +345,7 @@ export class Slider extends Component {
       style,
       trackStyle,
       thumbStyle,
-      ...otherProps,
+      ...otherProps
     } = props 
 
     return otherProps
