@@ -1,6 +1,6 @@
 {
   "name": "@bluejeans/react-native-slider",
-  "version": "0.9.1-rc.10",
+  "version": "0.9.1-rc.11",
   "description": "A pure JavaScript <Slider /> component for react-native",
   "main": "lib/Slider.js",
   "files": [
