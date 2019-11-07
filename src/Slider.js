@@ -258,11 +258,13 @@ export class Slider extends Component {
   }
   
   onGotFocus = (value) => {
-    this.props.onFocusChange(value)
+    const  { onFocusChange } = this.props
+    onFocusChange && onFocusChange(value)
   }
   
   onLostFocus = (value) => {
-    this.props.onFocusChange(false)
+    const  { onFocusChange } = this.props
+    onFocusChange && onFocusChange(false)
   }
 
   renderStep = (currentValue, value, style, testId) => {
