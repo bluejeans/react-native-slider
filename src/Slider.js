@@ -1,5 +1,6 @@
 import React, { Component } from "react" 
 import PropTypes from 'prop-types'
+import Touchable from './Touchable'
 
 import {
   Animated,
@@ -255,15 +256,35 @@ export class Slider extends Component {
     const { onStepHover } = this .props
     onStepHover && onStepHover(val)
   }
+  
+  onGotFocus = (value) => {
+    const  { onFocusChange } = this.props
+    onFocusChange && onFocusChange(value)
+  }
+  
+  onLostFocus = (value) => {
+    const  { onFocusChange } = this.props
+    onFocusChange && onFocusChange(false)
+  }
 
-  renderStep = (currentValue, value, style) => {
+  renderStep = (currentValue, value, style, testId) => {
+    const accessibilityLabel = this.props.getAccessibilityLabel(value)
     return (
-      <TouchableOpacity onPress={() => this.onStepPress(value)} style={[style, (currentValue > value) && defaultStyles.whiteBackground]} activeOpacity={1}>
+      <Touchable
+        controlTypeName={'button'}
+        onPress={() => this.onStepPress(value)}
+        style={[style, (currentValue > value) && defaultStyles.whiteBackground]}
+        activeOpacity={1}
+        onGotFocus={() => this.onGotFocus(value)}
+        onLostFocus={() => this.onLostFocus(value)}
+        accessibilityLabel={accessibilityLabel}
+        testID={testId}
+      >
         <View style={{ backgroundColor: 'transparent', height: 4, width: 4 }}
           onMouseLeave={() => this.handleStepHover(false)}
           onMouseEnter={() => this.handleStepHover(value)}
         />
-      </TouchableOpacity>
+      </Touchable>
     )
   }
 
@@ -313,10 +334,10 @@ export class Slider extends Component {
             renderToHardwareTextureAndroid
             style={[mainStyles.track, trackStyle, minimumTrackStyle]}
           />
-          {this.renderStep(currentValue, 0, defaultStyles.firstStep)}
-          {this.renderStep(currentValue, 0.334, defaultStyles.secondStep)}
-          {this.renderStep(currentValue, 0.668, defaultStyles.thirdStep)}
-          {this.renderStep(currentValue, 1, defaultStyles.fourthStep)}
+          {this.renderStep(currentValue, 0, defaultStyles.firstStep, 'SliderStep1')}
+          {this.renderStep(currentValue, 0.334, defaultStyles.secondStep, 'SliderStep2')}
+          {this.renderStep(currentValue, 0.668, defaultStyles.thirdStep, 'SliderStep3')}
+          {this.renderStep(currentValue, 1, defaultStyles.fourthStep, 'SliderStep4')}
         </TouchableOpacity>
         <Animated.View
           onLayout={this._measureThumb}
