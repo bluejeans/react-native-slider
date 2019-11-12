@@ -176,6 +176,11 @@ export class Slider extends Component {
     * Used to configure the animation parameters.  These are the same parameters in the Animated library.
     */
     animationConfig : PropTypes.object,
+    
+    /**
+    * Used to make slider tabbable or not for keyboard accessibility
+    */
+    isFocusable: PropTypes.bool
   }
 
   state = {
@@ -268,7 +273,8 @@ export class Slider extends Component {
   }
 
   renderStep = (currentValue, value, style, testId) => {
-    const accessibilityLabel = this.props.getAccessibilityLabel(value)
+    const { isFocusable, getAccessibilityLabel } = this.props
+    const accessibilityLabel = getAccessibilityLabel(value)
     return (
       <Touchable
         controlTypeName={'button'}
@@ -279,6 +285,7 @@ export class Slider extends Component {
         onLostFocus={() => this.onLostFocus(value)}
         accessibilityLabel={accessibilityLabel}
         testID={testId}
+        isTabStop={isFocusable}
       >
         <View style={{ backgroundColor: 'transparent', height: 4, width: 4 }}
           onMouseLeave={() => this.handleStepHover(false)}
