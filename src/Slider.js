@@ -10,10 +10,7 @@ import {
   Easing,
   TouchableOpacity,
   ViewPropTypes
-} from "react-native" 
-
-const shallowCompare = require('react-addons-shallow-compare'),
-styleEqual = require('style-equal') 
+} from "react-native"
 
 const TRACK_SIZE = 6 
 const THUMB_SIZE = 24 
@@ -180,7 +177,16 @@ export class Slider extends Component {
     /**
     * Used to make slider tabbable or not for keyboard accessibility
     */
-    isFocusable: PropTypes.bool
+    isFocusable: PropTypes.bool,
+
+    /**
+     * Used to specify discreet steps if any along with its value and styles
+     * Values for each step - value(number), styles(object), testID(string)
+     * Eg: steps : [{
+     *  value: 0.33, styles: { position: 'absolute', left: '2%'}, testID: 'SliderStep1'
+     * }]
+     */
+    steps: PropTypes.array
   }
 
   state = {
@@ -231,27 +237,19 @@ export class Slider extends Component {
   }
 
   onTrackPress = (event) => {
-    const value = this._getValue({dx: event.nativeEvent.locationX}, true)
-    let finalValue = value
-    switch(true) {
-      case (value < 0.167):
-        finalValue = 0
-        break
-      case (value >= 0.167 && value < 0.5):
-        finalValue = 0.334
-        break 
-      case (value >= 0.5 && value < 0.835):
-        finalValue = .668
-        break
-      default:
-        finalValue = 1
+    if (this.props.disabled) {
+      return
     }
+    const finalValue = this._getValue({dx: event.nativeEvent.locationX}, true)
     this._setCurrentValue(finalValue) 
     this._fireChangeEvent('onValueChange')
     this._fireChangeEvent('onTrackPress')
   }
 
   onStepPress = (value) => {
+    if (this.props.disabled) {
+      return
+    }
     this._setCurrentValue(value) 
     this._fireChangeEvent('onValueChange')
     this._fireChangeEvent('onStepPress')
@@ -272,14 +270,21 @@ export class Slider extends Component {
     onFocusChange && onFocusChange(false)
   }
 
+  renderSteps = (steps) => {
+    const currentValue = this._getCurrentValue()
+    return steps.map(step => this.renderStep(currentValue, step.value, step.styles, step.testID))
+  }
+
   renderStep = (currentValue, value, style, testId) => {
-    const { isFocusable, getAccessibilityLabel } = this.props
-    const accessibilityLabel = getAccessibilityLabel(value)
+    const { isFocusable, getAccessibilityLabel, maximumValue } = this.props
+    const accessibilityLabel = (getAccessibilityLabel && getAccessibilityLabel(value)) || value
+    const stepStyle = {...defaultStyles.stepStyle, ...{ left: value/maximumValue * 100 + '%' }}
+
     return (
       <Touchable
         controlTypeName={'button'}
         onPress={() => this.onStepPress(value)}
-        style={[style, (currentValue > value) && defaultStyles.whiteBackground]}
+        style={[style || stepStyle, (currentValue > value) && defaultStyles.whiteBackground]}
         activeOpacity={1}
         onGotFocus={() => this.onGotFocus(value)}
         onLostFocus={() => this.onLostFocus(value)}
@@ -306,6 +311,7 @@ export class Slider extends Component {
       style,
       trackStyle,
       thumbStyle,
+      steps,
       ...other
     } = this.props 
     const { value, containerSize, trackSize, thumbSize, allMeasured } = this.state 
@@ -325,9 +331,7 @@ export class Slider extends Component {
       width: Animated.add(thumbLeft, thumbSize.width / 2),
       backgroundColor: minimumTrackTintColor,
       ...valueVisibleStyle
-    } 
-    
-    const currentValue =  this._getCurrentValue()
+    }
 
     return (
       <View {...other} style={[mainStyles.container, style]} onLayout={this._measureContainer}>
@@ -341,10 +345,7 @@ export class Slider extends Component {
             renderToHardwareTextureAndroid
             style={[mainStyles.track, trackStyle, minimumTrackStyle]}
           />
-          {this.renderStep(currentValue, 0, defaultStyles.firstStep, 'SliderStep1')}
-          {this.renderStep(currentValue, 0.334, defaultStyles.secondStep, 'SliderStep2')}
-          {this.renderStep(currentValue, 0.668, defaultStyles.thirdStep, 'SliderStep3')}
-          {this.renderStep(currentValue, 1, defaultStyles.fourthStep, 'SliderStep4')}
+          {steps && this.renderSteps(steps)}
         </TouchableOpacity>
         <Animated.View
           onLayout={this._measureThumb}
@@ -399,25 +400,7 @@ export class Slider extends Component {
     if (this.props.disabled) {
       return
     }
-
-    const value = this._getValue(gestureState)
-    let finalValue = value
-
-    switch(true) {
-      case (value < 0.167):
-        finalValue = 0
-        break
-      case (value >= 0.167 && value < 0.5):
-        finalValue = 0.334
-        break 
-      case (value >= 0.5 && value < 0.835):
-        finalValue = .668
-        break
-      default:
-        finalValue = 1
-    }
-
-
+    const finalValue = this._getValue(gestureState)
     this._setCurrentValue(finalValue) 
     this._fireChangeEvent('onValueChange')
     this._fireChangeEvent('onSlidingComplete')
@@ -466,27 +449,39 @@ export class Slider extends Component {
 
   _getValue = (gestureState: Object, trackPressed) => {
     let length = this.state.containerSize.width
-    let thumbLeft = gestureState.dx 
+    let thumbLeft = gestureState.dx
+    const isActiveTouch = gestureState.numberActiveTouches
     if (!trackPressed) {
       length = this.state.containerSize.width - this.state.thumbSize.width 
       thumbLeft = this._previousLeft + gestureState.dx 
     }
 
     const ratio = thumbLeft / length 
-
-    if (this.props.step) {
+    if (this.props.steps && !isActiveTouch) {
+      const stepValues = this.props.steps.map(step => step.value)
+      const selectedValue = this._getSelectedValue(ratio)
+      return this._getClosestStepValue(selectedValue, stepValues)
+    } else if (this.props.step && !isActiveTouch) {
       return Math.max(this.props.minimumValue,
         Math.min(this.props.maximumValue,
           this.props.minimumValue + Math.round(ratio * (this.props.maximumValue - this.props.minimumValue) / this.props.step) * this.props.step
         )
-      ) 
+      )
     } else {
-      return Math.max(this.props.minimumValue,
-        Math.min(this.props.maximumValue,
-          ratio * (this.props.maximumValue - this.props.minimumValue) + this.props.minimumValue
-        )
-      ) 
+      return this._getSelectedValue(ratio)
     }
+  }
+
+  _getSelectedValue = (ratio) => {
+    return Math.max(this.props.minimumValue,
+      Math.min(this.props.maximumValue,
+        ratio * (this.props.maximumValue - this.props.minimumValue) + this.props.minimumValue
+      )
+    )
+  }
+
+  _getClosestStepValue = (val, stepValues) => {
+    return stepValues.reduce((p, n) => (Math.abs(p) > Math.abs(n - val) ? n - val : p), Infinity) + val
   }
 
   _getCurrentValue = () => {
@@ -554,8 +549,8 @@ export class Slider extends Component {
     return (
       <Animated.View
         {...this._panResponder.panHandlers}
-        onMouseLeave={() => this.props.onHover(false)}
-        onMouseEnter={() => this.props.onHover(true)}
+        onMouseLeave={() => this.props.onHover && this.props.onHover(false)}
+        onMouseEnter={() => this.props.onHover && this.props.onHover(true)}
         style={[defaultStyles.debugThumbTouchArea, positionStyle]}
       />
     )
@@ -599,40 +594,9 @@ const defaultStyles = StyleSheet.create({
     backgroundColor: 'transparent',
     opacity: 0.5,
   },
-  firstStep: {
+  stepStyle: {
     position: 'absolute',
     backgroundColor: 'white',
-    left: '2%',
-    height: 4,
-    width: 4,
-    borderRadius: 4,
-    marginTop: 1,
-    marginBottom: 1
-  },
-  secondStep: {
-    position: 'absolute',
-    backgroundColor: '#00A7F4',
-    left: '33%',
-    height: 4,
-    width: 4,
-    borderRadius: 4,
-    marginTop: 1,
-    marginBottom: 1
-  },
-  thirdStep: {
-    position: 'absolute',
-    backgroundColor: '#00A7F4',
-    left: '65%',
-    height: 4,
-    width: 4,
-    borderRadius: 4,
-    marginTop: 1,
-    marginBottom: 1
-  },
-  fourthStep: {
-    position: 'absolute',
-    backgroundColor: '#00A7F4',
-    left: '95%',
     height: 4,
     width: 4,
     borderRadius: 4,
