@@ -181,9 +181,9 @@ export class Slider extends Component {
 
     /**
      * Used to specify discreet steps if any along with its value and styles
-     * Values for each step - value(number), styles(object), testID(string)
+     * Values for each step - value(number), styles(object), testID(string), visible(boolean)
      * Eg: steps : [{
-     *  value: 0.33, styles: { position: 'absolute', left: '2%'}, testID: 'SliderStep1'
+     *  value: 0.33, styles: { position: 'absolute', left: '2%'}, testID: 'SliderStep1', visible: true
      * }]
      */
     steps: PropTypes.array
@@ -270,21 +270,45 @@ export class Slider extends Component {
     onFocusChange && onFocusChange(false)
   }
 
-  renderSteps = (steps) => {
-    const currentValue = this._getCurrentValue()
-    return steps.map(step => this.renderStep(currentValue, step.value, step.styles, step.testID))
+  calculateSteps = () => {
+    const { minimumValue, maximumValue, step, stepStyle } = this.props
+    var steps = []
+    if (step !== 0) {
+      for (let i = minimumValue; i < maximumValue; i = i + step ) {
+        steps.push({
+          value: i, styles: stepStyle, testID:`sliderValue${step}`, visible: false
+        })
+      }
+      steps.push({ value: maximumValue, styles: stepStyle, testID:`sliderValue${step}`, visible: false })
+    }
+    return steps
   }
 
-  renderStep = (currentValue, value, style, testId) => {
-    const { isFocusable, getAccessibilityLabel, maximumValue } = this.props
+  renderSteps = (steps) => {
+    const currentValue = this._getCurrentValue()
+    return (
+      <View style={{
+        width: '100%',
+        position: 'absolute',
+        display: 'flex',
+        backgroundColor: 'transparent',
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+      }}>
+        { steps.map(step => this.renderStep(currentValue, step.value, step.styles, step.testID, step.visible)) }
+      </View>
+    )
+  }
+
+  renderStep = (currentValue, value, style, testId, visible) => {
+    const { isFocusable, getAccessibilityLabel, maximumValue, steps } = this.props
     const accessibilityLabel = (getAccessibilityLabel && getAccessibilityLabel(value)) || value
-    const stepStyle = {...defaultStyles.stepStyle, ...{ left: value/maximumValue * 100 + '%' }}
 
     return (
       <Touchable
         controlTypeName={'button'}
         onPress={() => this.onStepPress(value)}
-        style={[style || stepStyle, (currentValue > value) && defaultStyles.whiteBackground]}
+        style={[defaultStyles.stepStyle, style, visible && (currentValue > value) && defaultStyles.whiteBackground]}
         activeOpacity={1}
         onGotFocus={() => this.onGotFocus(value)}
         onLostFocus={() => this.onLostFocus(value)}
@@ -332,6 +356,7 @@ export class Slider extends Component {
       backgroundColor: minimumTrackTintColor,
       ...valueVisibleStyle
     }
+    const stepsToRender = steps || this.calculateSteps()
 
     return (
       <View {...other} style={[mainStyles.container, style]} onLayout={this._measureContainer}>
@@ -345,7 +370,7 @@ export class Slider extends Component {
             renderToHardwareTextureAndroid
             style={[mainStyles.track, trackStyle, minimumTrackStyle]}
           />
-          {steps && this.renderSteps(steps)}
+          {stepsToRender && this.renderSteps(stepsToRender)}
         </TouchableOpacity>
         <Animated.View
           onLayout={this._measureThumb}
@@ -595,8 +620,7 @@ const defaultStyles = StyleSheet.create({
     opacity: 0.5,
   },
   stepStyle: {
-    position: 'absolute',
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     height: 4,
     width: 4,
     borderRadius: 4,
