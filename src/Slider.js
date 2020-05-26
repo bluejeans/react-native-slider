@@ -256,7 +256,7 @@ export class Slider extends Component {
   }
 
   handleStepHover = (val) => {
-    const { onStepHover } = this .props
+    const { onStepHover } = this.props
     onStepHover && onStepHover(val)
   }
   
@@ -272,15 +272,14 @@ export class Slider extends Component {
 
   calculateSteps = () => {
     const { minimumValue, maximumValue, step, stepStyle } = this.props
-    var steps = []
+    let steps = []
+    steps.push({ value: minimumValue, styles: stepStyle, testID:`sliderValue${minimumValue}`, visible: false })
     if (step !== 0) {
-      for (let i = minimumValue; i < maximumValue; i = i + step ) {
-        steps.push({
-          value: i, styles: stepStyle, testID:`sliderValue${step}`, visible: false
-        })
+      for (let i = minimumValue + step; i < maximumValue; i = i + step ) {
+        steps.push({ value: i, styles: stepStyle, testID:`sliderValue${i}`, visible: false })
       }
-      steps.push({ value: maximumValue, styles: stepStyle, testID:`sliderValue${step}`, visible: false })
     }
+    steps.push({ value: maximumValue, styles: stepStyle, testID:`sliderValue${maximumValue}`, visible: false })
     return steps
   }
 
